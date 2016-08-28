@@ -50,6 +50,6 @@ io.on('connection', function(socket) {
 	});
 });
 
-server.listen(8000, function () {
-  console.log('NodeJS started, listening on port: ' + 8000 + '...');
+server.listen(65080, function () {
+  console.log('NodeJS started, listening on port: ' + 65080 + '...');
 });
