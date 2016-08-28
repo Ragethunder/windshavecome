@@ -1,0 +1,14 @@
+{
+  "name": "windshavecome",
+  "version": "1.0.1",
+  "description": "Custom Node.js websocket realtime multiplayer game",
+  "private": true,
+  "scripts": {
+    "start": "node app.js",
+	"deploy": "gcloud app deploy"
+  },
+  "author": "RollNStompa <vladimir.dev.pr@gmail.com>",
+  "dependencies": {
+    "socket.io": "^1.4.8"
+  }
+}
