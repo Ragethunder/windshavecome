@@ -50,7 +50,6 @@ io.sockets.on('connection', function(socket) {
 	});
 });
 
-server.listen(env.NODE_PORT || 8443, env.NODE_IP || 'localhost', function () {
-	console.log('log:');
-  console.log(`Application worker ${process.pid} started...` + 'listening on port: ' + env.NODE_PORT);
+server.listen(8000, function () {
+  console.log('NodeJS started, listening on port: ' + 8000 + '...');
 });
