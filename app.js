@@ -18,7 +18,7 @@ var players = [];
 
 var messages = [];
  
-io.sockets.on('connection', function(socket) {
+io.on('connection', function(socket) {
 	console.log(1);
 	socket.emit('chatMessages', messages);
 	console.log(2);
