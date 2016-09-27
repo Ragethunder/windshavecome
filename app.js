@@ -1,7 +1,7 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var port = 3100;
+var port = 8080;
 
 function Player(id) {
 	this.id = id;
