@@ -63,6 +63,18 @@ io.on('connection', function(socket) {
 	});
 	
 	socket.on ('register', function(data){
+		var email = data.email;
+		var user = data.user;
+		var pass = data.pass;
+		pass = md5(pass);
+		var salt = crypto.randomBytes(32).toString('base64');
+		pass = md5(pass + salt);
+		var data = {
+			_id: user,
+			pass: pass,
+			salt: salt,
+			email: email
+		};
 		console.log(data);
 	});
 	
