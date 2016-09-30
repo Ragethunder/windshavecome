@@ -2,6 +2,11 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var port = 8080;
+var crypto = require('crypto');
+var md5 = require('md5');
+var MongoClient = require('mongodb').MongoClient;
+
+var md5sum = crypto.createHash('md5');
 
 function Player(id) {
 	this.id = id;
@@ -23,7 +28,16 @@ app.get('/', function(req, res){
 var players = [];
 
 var messages = [];
- 
+
+var db = null;
+
+MongoClient.connect('mongodb://localhost:27017/serverdata/mmo', function(err, connecteddb)){
+	if(err){
+		return;
+	}
+	db = connecteddb;
+}
+
 io.on('connection', function(socket) {
 	socket.emit('chatMessages', messages);
 	var idNum = -1;
@@ -46,6 +60,10 @@ io.on('connection', function(socket) {
 		messages.push(newMessage);
 		socket.broadcast.emit('chatMessage', newMessage);
 		socket.emit('chatMessage', newMessage);
+	});
+	
+	socket.on ('register', function(data){
+		console.log(data);
 	});
 	
 	socket.on('ping', function(data) {
