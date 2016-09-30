@@ -31,7 +31,7 @@ var messages = [];
 
 var db = null;
 
-MongoClient.connect('mongodb://localhost:27017/serverdata/mmo', function(err, connecteddb){
+MongoClient.connect('mongodb://localhost:27017/serverdata/mmo/serverdatabase', function(err, connecteddb){
 	if(err){
 		return;
 	}
