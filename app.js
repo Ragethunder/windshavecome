@@ -37,8 +37,8 @@ MongoClient.connect('mongodb://localhost:27017/serverdatabase', function(err, co
 		return;
 	}
 	db = connecteddb;
+	MongoUsersCollection = db.collection("users");
 });
-MongoUsersCollection = db.collection("users");
 
 io.on('connection', function(socket) {
 	socket.emit('chatMessages', messages);
