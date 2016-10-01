@@ -108,6 +108,10 @@ io.on('connection', function(socket) {
 					socket.emit('login-message', {err: 0, message: "Username and/or password invalid. 1"});
 				} else {
 					var salt = result.salt;
+					console.log(salt);
+					console.log(pass);
+					console.log(md5(salt + pass));
+					console.log(result.pass);
 					if(md5(salt + pass) != result.pass){
 						socket.emit('login-message', {err: 1, message: "Username and/or password invalid. 2"});
 					} else {
