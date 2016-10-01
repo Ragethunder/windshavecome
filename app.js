@@ -96,6 +96,19 @@ io.on('connection', function(socket) {
 		});
 	});
 	
+	socket.on ('register', function(data){
+		var user = data.user;
+		var pass = data.pass;
+		pass = md5(pass);
+		MongoUsersCollection.findOne({_id:user}, function(err, result){
+			if(err){
+				console.log(err);
+			} else {
+				console.log(result);
+			}
+		});
+	});
+	
 	socket.on('disconnect', function(){
 		players[idNum] = null;
 	});
