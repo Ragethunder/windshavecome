@@ -77,13 +77,17 @@ io.on('connection', function(socket) {
 			salt: salt,
 			email: email
 		};
-		MongoUsersCollection.insert(data, function(err, doc){
-			if(err){
-				if(err.code == 11000){
-					socket.emit('register-message', {err: 0, message: "That username is already in use."});
+		if(MongoUsersCollection.find({email:data.email})){
+			socket.emit('register-message', {err: 1, message: "That email is already in use."});
+		} else {
+			MongoUsersCollection.insert(data, function(err, doc){
+				if(err){
+					if(err.code == 11000){
+						socket.emit('register-message', {err: 0, message: "That username is already in use."});
+					}
 				}
-			}
-		});
+			});
+		}
 	});
 	
 	socket.on('ping', function(data) {
