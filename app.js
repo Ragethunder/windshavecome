@@ -77,8 +77,10 @@ io.on('connection', function(socket) {
 			salt: salt,
 			email: email
 		};
-		if(MongoUsersCollection.find({email:data.email})){
-			console.log(data.email);
+		console.log({email:data.email});
+		var a = MongoUsersCollection.find({email:data.email});
+		if(a){
+			console.log(a);
 			socket.emit('register-message', {err: 1, message: "That email is already in use."});
 		} else {
 			MongoUsersCollection.insert(data, function(err, doc){
