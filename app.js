@@ -77,25 +77,22 @@ io.on('connection', function(socket) {
 			salt: salt,
 			email: email
 		};
-		console.log({email:data.email});
-		var a = MongoUsersCollection.find({email:data.email});
-		if(a){
-			console.log(a);
-			socket.emit('register-message', {err: 1, message: "That email is already in use."});
-		} else {
-			MongoUsersCollection.insert(data, function(err, doc){
-				if(err){
-					console.log(data._id);
-					if(err.code == 11000){
-						socket.emit('register-message', {err: 0, message: "That username is already in use."});
+		MongoUsersCollection.find({email:data.email}).toArray(function(err, items){
+			if(err){
+				console.log(err);
+			} else if(items.length > 0){
+				socket.emit('register-message', {err: 1, message: "That email is already in use."});
+			} else {
+				MongoUsersCollection.insert(data, function(err, doc){
+					if(err){
+						console.log(data._id);
+						if(err.code == 11000){
+							socket.emit('register-message', {err: 0, message: "That username is already in use."});
+						}
 					}
-				}
-			});
-		}
-	});
-	
-	socket.on('ping', function(data) {
-		console.log(data);
+				});
+			}
+		});
 	});
 	
 	socket.on('disconnect', function(){
