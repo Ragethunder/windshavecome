@@ -79,7 +79,9 @@ io.on('connection', function(socket) {
 		};
 		MongoUsersCollection.insert(data, function(err, doc){
 			if(err){
-				console.log(err);
+				if(err.code == 11000){
+					socket.emit('register-message', {err: 0, message: "That username is already in use."});
+				}
 			}
 		});
 	});
