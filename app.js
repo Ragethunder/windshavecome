@@ -96,7 +96,7 @@ io.on('connection', function(socket) {
 		});
 	});
 	
-	socket.on ('register', function(data){
+	socket.on ('login', function(data){
 		var user = data.user;
 		var pass = data.pass;
 		pass = md5(pass);
