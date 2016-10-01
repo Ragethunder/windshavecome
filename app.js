@@ -5,6 +5,7 @@ var port = 8080;
 var crypto = require('crypto');
 var md5 = require('md5');
 var MongoClient = require('mongodb').MongoClient;
+var MongoUsersCollection;
 
 var md5sum = crypto.createHash('md5');
 
@@ -37,6 +38,7 @@ MongoClient.connect('mongodb://localhost:27017/serverdatabase', function(err, co
 	}
 	db = connecteddb;
 });
+MongoUsersCollection = db.collection("users");
 
 io.on('connection', function(socket) {
 	socket.emit('chatMessages', messages);
@@ -75,7 +77,7 @@ io.on('connection', function(socket) {
 			salt: salt,
 			email: email
 		};
-		db.users.insert(data, function(err, doc){
+		MongoUsersCollection.insert(data, function(err, doc){
 			if(err){
 				console.log(err);
 			}
