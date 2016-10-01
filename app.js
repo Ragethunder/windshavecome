@@ -105,11 +105,11 @@ io.on('connection', function(socket) {
 				console.log(err);
 			} else {
 				if(result == null){
-					socket.emit('login-message', {err: 0, message: "Username and/or password invalid."});
+					socket.emit('login-message', {err: 0, message: "Username and/or password invalid. 1"});
 				} else {
 					var salt = result.salt;
 					if(md5(salt + pass) != result.pass){
-						socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
+						socket.emit('login-message', {err: 1, message: "Username and/or password invalid. 2"});
 					} else {
 						socket.emit('login-message', {success: 0, message: "Welcome back " + data._id});
 					}
