@@ -75,7 +75,11 @@ io.on('connection', function(socket) {
 			salt: salt,
 			email: email
 		};
-		console.log(data);
+		db.users.insert(data, function(err, doc){
+			if(err){
+				console.log(err);
+			}
+		});
 	});
 	
 	socket.on('ping', function(data) {
