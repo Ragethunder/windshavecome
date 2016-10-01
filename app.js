@@ -89,6 +89,8 @@ io.on('connection', function(socket) {
 						if(err.code == 11000){
 							socket.emit('register-message', {err: 0, message: "That username is already in use."});
 						}
+					} else {
+						socket.emit('register-message', {success: 0, message "Welcome " + data._id});
 					}
 				});
 			}
