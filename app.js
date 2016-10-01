@@ -112,7 +112,7 @@ io.on('connection', function(socket) {
 					if(pass != result.pass){
 						socket.emit('login-message', {err: 1, message: "Username and/or password invalid. 2"});
 					} else {
-						socket.emit('login-message', {success: 0, message: "Welcome back " + data._id});
+						socket.emit('login-message', {success: 0, message: "Welcome back " + user});
 					}
 				}
 			}
