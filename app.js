@@ -104,7 +104,16 @@ io.on('connection', function(socket) {
 			if(err){
 				console.log(err);
 			} else {
-				console.log(result);
+				if(result == null){
+					socket.emit('login-message', {err: 0, message: "Username and/or password invalid."});
+				} else {
+					var salt = result.salt;
+					if(md5(salt + pass) != result.pass){
+						socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
+					} else {
+						socket.emit('login-message', {success: 0, message: "Welcome back " + data._id});
+					}
+				}
 			}
 		});
 	});
