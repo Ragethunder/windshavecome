@@ -33,6 +33,7 @@ var playersShort = [];
 
 var messagesGeneral = [];
 var messagesDevChat = [];
+var messagesDevChatStoreList = [];
 
 var db = null;
 
@@ -80,6 +81,24 @@ io.on('connection', function(socket) {
 					messagesDevChat.splice(0,1);
 				}
 				messagesDevChat.push(newMessage);
+				messagesDevChatStoreList.push(newMessage);
+				if(messagesDevChatStoreList.length >= 10){
+					var devChatData = {};
+					MongoChatCollection.findOne({_id:"devchat"}, function(err, result){
+						if(err){
+							devChatData = {_id:"devchat", rows = messagesDevChatStoreList};
+							MongoChatCollection.insert(devChatData, function(err, doc){
+								if(err){
+									console.log(err);
+								}
+							});
+						} else {
+							devChatData = result;
+							devChatData.rows.concat(messagesDevChatStoreList);
+							MongoChatCollection.updateOne({_id:"devchat"}, devChatData);
+						}
+					});
+				}
 				socket.broadcast.emit('chatMessage', newMessage);
 				socket.emit('chatMessage', newMessage);
 			} else {
@@ -93,7 +112,7 @@ io.on('connection', function(socket) {
 				}
 			}
 		} else {
-			var newMessage = {user: data.user, message: data.message};
+			var newMessage = {user: data.user, message: data.message, channel:-1};
 			messagesGeneral.push(newMessage);
 			socket.broadcast.emit('chatMessage', newMessage);
 			socket.emit('chatMessage', newMessage);
