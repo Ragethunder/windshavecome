@@ -6,10 +6,13 @@ var crypto = require('crypto');
 var md5 = require('md5');
 var MongoClient = require('mongodb').MongoClient;
 var MongoUsersCollection;
+var MongoChatCollection;
 
 var md5sum = crypto.createHash('md5');
 
-function Player(id) {
+function Player(id, socket) {
+	this.socket = socket;
+	this.user = '';
 	this.id = id;
 	this.x = 0;
 	this.y = 0;
@@ -21,14 +24,10 @@ app.get('/', function(req, res){
   res.send('<h1>Hello world</h1>');
 });
 
-//var io = require('./node_modules/socket.io')(server, { origins: '*:*'});
-//var io = require('socket.io')(server, { origins: '*:*'});
-
-//io.set("transports", ["websocket"]); 
-
 var players = [];
 
-var messages = [];
+var messagesGeneral = [];
+var messagesDevChat = [];
 
 var db = null;
 
@@ -38,30 +37,60 @@ MongoClient.connect('mongodb://localhost:27017/serverdatabase', function(err, co
 	}
 	db = connecteddb;
 	MongoUsersCollection = db.collection("users");
+	MongoChatCollection = db.collection("chats");
 });
 
 io.on('connection', function(socket) {
-	socket.emit('chatMessages', messages);
 	var idNum = -1;
 	socket.on ('initialize', function() {
 		for(var i=0; i<players.length+1; i++){
-			if(players[i] == undefined || !(players[i])){
+			if(players[i] == undefined || !(players[i]) || players[i] == null){
 				idNum = i; 
 			}
 		}
-		var newPlayer = new Player(idNum);
+		var newPlayer = new Player(idNum, socket);
 		players.push(newPlayer);
 		
 		socket.emit('playerData', {id: idNum, players: players});
-		socket.emit('chatMessages', {messages:messages});
+		socket.emit('chatMessages', {messages:messagesGeneral});
+		socket.emit('chatMessages', {messages:messagesDevChat});
 		socket.broadcast.emit('playerConnected', newPlayer);
 	});
 	
 	socket.on ('chatMessage', function(data) {
-		var newMessage = {user: data.user, message: data.message};
-		messages.push(newMessage);
-		socket.broadcast.emit('chatMessage', newMessage);
-		socket.emit('chatMessage', newMessage);
+		if(data.channel){
+			if(data.channel == -1){
+				var newMessage = {user: data.user, message: data.message, channel:-1};
+				if(messagesGeneral.length >= 100){
+					messagesGeneral.splice(0,1);
+				}
+				messagesGeneral.push(newMessage);
+				socket.broadcast.emit('chatMessage', newMessage);
+				socket.emit('chatMessage', newMessage);
+			} else if(data.channel == -2){
+				var newMessage = {user: data.user, message: data.message, channel:-2};
+				if(messagesDevChat.length >= 100){
+					messagesDevChat.splice(0,1);
+				}
+				messagesDevChat.push(newMessage);
+				socket.broadcast.emit('chatMessage', newMessage);
+				socket.emit('chatMessage', newMessage);
+			} else {
+				for(var i=0; i<players.length; i++){
+					if(players[i] && players[i].user == data.channel){
+						var newMessage = {user: data.user, message: data.message, channel:data.channel};
+						socket.emit('chatMessage', newMessage);
+						players[i].socket.emit('chatMessage', newMessage);
+						break;
+					}
+				}
+			}
+		} else {
+			var newMessage = {user: data.user, message: data.message};
+			messagesGeneral.push(newMessage);
+			socket.broadcast.emit('chatMessage', newMessage);
+			socket.emit('chatMessage', newMessage);
+		}
 	});
 	
 	socket.on ('register', function(data){
@@ -89,6 +118,7 @@ io.on('connection', function(socket) {
 							socket.emit('register-message', {err: 0, message: "That username is already in use."});
 						}
 					} else {
+						players[idNum].user = data._id;
 						socket.emit('register-message', {success: 0, message: "Welcome " + data._id});
 					}
 				});
@@ -104,7 +134,26 @@ io.on('connection', function(socket) {
 				console.log(err);
 			} else {
 				if(result == null){
-					socket.emit('login-message', {err: 0, message: "Username and/or password invalid. 1"});
+					MongoUsersCollection.findOne({email:user}, function(err, result){
+						if(err){
+							console.log(err);
+						} else {
+							if(result == null){
+								socket.emit('login-message', {err: 0, message: "Username and/or password invalid. 1"});
+							} else {
+								pass = md5(pass);
+								var salt = result.salt;
+								pass = md5(pass + salt);
+								if(pass != result.pass){
+									socket.emit('login-message', {err: 1, message: "Username and/or password invalid. 2"});
+								} else {
+									players[idNum].user = result._id;
+									user = result._id;
+									socket.emit('login-message', {success: 0, message: "Welcome back " + user});
+								}
+							}
+						}
+					});
 				} else {
 					pass = md5(pass);
 					var salt = result.salt;
@@ -112,6 +161,7 @@ io.on('connection', function(socket) {
 					if(pass != result.pass){
 						socket.emit('login-message', {err: 1, message: "Username and/or password invalid. 2"});
 					} else {
+						players[idNum].user = user;
 						socket.emit('login-message', {success: 0, message: "Welcome back " + user});
 					}
 				}
