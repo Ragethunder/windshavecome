@@ -14,6 +14,10 @@ function Player(id, socket) {
 	this.socket = socket;
 	this.user = '';
 	this.id = id;
+}
+function Player(id, name) {
+	this.user = name;
+	this.id = id;
 	this.x = 0;
 	this.y = 0;
 	this.z = 0;
@@ -25,6 +29,7 @@ app.get('/', function(req, res){
 });
 
 var players = [];
+var playersShort = [];
 
 var messagesGeneral = [];
 var messagesDevChat = [];
@@ -51,13 +56,10 @@ io.on('connection', function(socket) {
 			}
 		}
 		var newPlayer = new Player(idNum, socket);
-		console.log(socket);
 		players.push(newPlayer);
 		
-		/*socket.emit('playerData', {id: idNum, players: players});
 		socket.emit('chatMessages', {messages:messagesGeneral});
 		socket.emit('chatMessages', {messages:messagesDevChat});
-		socket.broadcast.emit('playerConnected', newPlayer);*/
 	});
 	
 	
@@ -124,6 +126,11 @@ io.on('connection', function(socket) {
 					} else {
 						players[idNum].user = data._id;
 						socket.emit('register-message', {success: 0, message: "Welcome " + data._id});
+						
+						var newPlayerShort = new Player(idNum, data._id);
+						playersShort.push(newPlayerShort);
+						socket.emit('playerData', {id: idNum, players: playersShort});
+						socket.broadcast.emit('playerConnected', newPlayerShort);
 					}
 				});
 			}
@@ -154,6 +161,11 @@ io.on('connection', function(socket) {
 									players[idNum].user = result._id;
 									user = result._id;
 									socket.emit('login-message', {success: 0, message: "Welcome back " + user});
+						
+									var newPlayerShort = new Player(idNum, user);
+									playersShort.push(newPlayerShort);
+									socket.emit('playerData', {id: idNum, players: playersShort});
+									socket.broadcast.emit('playerConnected', newPlayerShort);
 								}
 							}
 						}
@@ -167,6 +179,11 @@ io.on('connection', function(socket) {
 					} else {
 						players[idNum].user = user;
 						socket.emit('login-message', {success: 0, message: "Welcome back " + user});
+						
+						var newPlayerShort = new Player(idNum, socket);
+						playersShort.push(newPlayerShort);
+						socket.emit('playerData', {id: idNum, players: user});
+						socket.broadcast.emit('playerConnected', newPlayerShort);
 					}
 				}
 			}
