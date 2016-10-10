@@ -41,7 +41,7 @@ MongoClient.connect('mongodb://localhost:27017/serverdatabase', function(err, co
 });
 
 io.on('connection', function(socket) {
-	/*
+	
 	var idNum = -1;
 	
 	socket.on ('initialize', function() {
@@ -57,9 +57,9 @@ io.on('connection', function(socket) {
 		socket.emit('chatMessages', {messages:messagesGeneral});
 		socket.emit('chatMessages', {messages:messagesDevChat});
 		socket.broadcast.emit('playerConnected', newPlayer);
-	});*/
+	});
 	
-	
+/*	
 	socket.on ('chatMessage', function(data) {
 		if(data.channel){
 			if(data.channel == -1){
@@ -174,7 +174,7 @@ io.on('connection', function(socket) {
 	
 	socket.on('disconnect', function(){
 		players[idNum] = null;
-	});
+	});*/
 });
 
 http.listen(port, function () {
