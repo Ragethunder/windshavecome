@@ -86,7 +86,7 @@ io.on('connection', function(socket) {
 					var devChatData = {};
 					MongoChatCollection.findOne({_id:"devchat"}, function(err, result){
 						if(err){
-							devChatData = {_id:"devchat", rows = messagesDevChatStoreList};
+							devChatData = {_id:"devchat", rows:messagesDevChatStoreList};
 							MongoChatCollection.insert(devChatData, function(err, doc){
 								if(err){
 									console.log(err);
