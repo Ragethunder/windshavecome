@@ -15,7 +15,7 @@ function Player(id, socket) {
 	this.user = '';
 	this.id = id;
 }
-function Player(id, name) {
+function PlayerShort(id, name) {
 	this.user = name;
 	this.id = id;
 	this.x = 0;
@@ -127,7 +127,7 @@ io.on('connection', function(socket) {
 						players[idNum].user = data._id;
 						socket.emit('register-message', {success: 0, message: "Welcome " + data._id});
 						
-						var newPlayerShort = new Player(idNum, data._id);
+						var newPlayerShort = new PlayerShort(idNum, data._id);
 						playersShort.push(newPlayerShort);
 						socket.emit('playerData', {id: idNum, players: playersShort});
 						socket.broadcast.emit('playerConnected', newPlayerShort);
@@ -162,7 +162,7 @@ io.on('connection', function(socket) {
 									user = result._id;
 									socket.emit('login-message', {success: 0, message: "Welcome back " + user});
 						
-									var newPlayerShort = new Player(idNum, user);
+									var newPlayerShort = new PlayerShort(idNum, user);
 									playersShort.push(newPlayerShort);
 									socket.emit('playerData', {id: idNum, players: playersShort});
 									socket.broadcast.emit('playerConnected', newPlayerShort);
@@ -180,7 +180,7 @@ io.on('connection', function(socket) {
 						players[idNum].user = user;
 						socket.emit('login-message', {success: 0, message: "Welcome back " + user});
 						
-						var newPlayerShort = new Player(idNum, socket);
+						var newPlayerShort = new PlayerShort(idNum, user);
 						playersShort.push(newPlayerShort);
 						socket.emit('playerData', {id: idNum, players: user});
 						socket.broadcast.emit('playerConnected', newPlayerShort);
