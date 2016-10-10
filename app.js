@@ -55,7 +55,7 @@ io.on('connection', function(socket) {
 		socket.emit('chatMessages', {messages:messagesGeneral});
 		socket.emit('chatMessages', {messages:messagesDevChat});
 		socket.broadcast.emit('playerConnected', newPlayer);
-	});
+	});/*
 	
 	socket.on ('chatMessage', function(data) {
 		if(data.channel){
@@ -167,7 +167,7 @@ io.on('connection', function(socket) {
 				}
 			}
 		});
-	});
+	});*/
 	
 	socket.on('disconnect', function(){
 		players[idNum] = null;
