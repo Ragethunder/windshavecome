@@ -53,10 +53,10 @@ io.on('connection', function(socket) {
 		var newPlayer = new Player(idNum, socket);
 		players.push(newPlayer);
 		
-		socket.emit('playerData', {id: idNum, players: players});
+		/*socket.emit('playerData', {id: idNum, players: players});
 		socket.emit('chatMessages', {messages:messagesGeneral});
-		socket.emit('chatMessages', {messages:messagesDevChat});
-		/*socket.broadcast.emit('playerConnected', newPlayer);*/
+		socket.emit('chatMessages', {messages:messagesDevChat});*/
+		socket.broadcast.emit('playerConnected', newPlayer);
 	});
 	
 /*	
