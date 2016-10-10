@@ -51,6 +51,7 @@ io.on('connection', function(socket) {
 			}
 		}
 		var newPlayer = new Player(idNum, socket);
+		console.log(socket);
 		players.push(newPlayer);
 		
 		/*socket.emit('playerData', {id: idNum, players: players});
