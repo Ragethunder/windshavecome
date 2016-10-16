@@ -65,7 +65,6 @@ io.on('connection', function(socket) {
 	
 	
 	socket.on ('chatMessage', function(data) {
-		console.log(data);
 		if(data.channel){
 			if(data.channel == -1){
 				var newMessage = {user: data.user, message: data.message, channel:-1};
