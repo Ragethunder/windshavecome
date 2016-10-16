@@ -141,11 +141,11 @@ io.on('connection', function(socket) {
 				MongoUsersCollection.insert(data, function(err, doc){
 					if(err){
 						if(err.code == 11000){
-							socket.emit('register-message', {err: 0, message: "That username is already in use."});
+							socket.emit('register-message', {err: 2, message: "That username is already in use."});
 						}
 					} else {
 						players[idNum].user = data._id;
-						socket.emit('register-message', {success: 0, message: "Welcome " + data._id});
+						socket.emit('register-message', {success: 1, message: "Welcome " + data._id});
 						
 						var newPlayerShort = new PlayerShort(idNum, data._id);
 						playersShort.push(newPlayerShort);
@@ -170,7 +170,7 @@ io.on('connection', function(socket) {
 							console.log(err);
 						} else {
 							if(result == null){
-								socket.emit('login-message', {err: 0, message: "Username and/or password invalid. 1"});
+								socket.emit('login-message', {err: 2, message: "Username and/or password invalid. 1"});
 							} else {
 								pass = md5(pass);
 								var salt = result.salt;
@@ -180,7 +180,7 @@ io.on('connection', function(socket) {
 								} else {
 									players[idNum].user = result._id;
 									user = result._id;
-									socket.emit('login-message', {success: 0, message: "Welcome back " + user});
+									socket.emit('login-message', {success: 1, message: "Welcome back " + user});
 						
 									var newPlayerShort = new PlayerShort(idNum, user);
 									playersShort.push(newPlayerShort);
@@ -198,7 +198,7 @@ io.on('connection', function(socket) {
 						socket.emit('login-message', {err: 1, message: "Username and/or password invalid. 2"});
 					} else {
 						players[idNum].user = user;
-						socket.emit('login-message', {success: 0, message: "Welcome back " + user});
+						socket.emit('login-message', {success: 1, message: "Welcome back " + user});
 						
 						var newPlayerShort = new PlayerShort(idNum, user);
 						playersShort.push(newPlayerShort);
