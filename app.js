@@ -98,6 +98,7 @@ io.on('connection', function(socket) {
 							MongoChatCollection.updateOne({_id:"devchat"}, devChatData);
 						}
 					});
+					messagesDevChatStoreList = [];
 				}
 				socket.broadcast.emit('chatMessage', newMessage);
 				socket.emit('chatMessage', newMessage);
@@ -145,7 +146,7 @@ io.on('connection', function(socket) {
 						}
 					} else {
 						players[idNum].user = data._id;
-						socket.emit('register-message', {success: 1, message: "Welcome " + data._id});
+						socket.emit('register-message', {success: 1, message: "Welcome " + data._id, user: data._id});
 						
 						var newPlayerShort = new PlayerShort(idNum, data._id);
 						playersShort.push(newPlayerShort);
@@ -180,7 +181,7 @@ io.on('connection', function(socket) {
 								} else {
 									players[idNum].user = result._id;
 									user = result._id;
-									socket.emit('login-message', {success: 1, message: "Welcome back " + user});
+									socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
 						
 									var newPlayerShort = new PlayerShort(idNum, user);
 									playersShort.push(newPlayerShort);
@@ -198,7 +199,7 @@ io.on('connection', function(socket) {
 						socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
 					} else {
 						players[idNum].user = user;
-						socket.emit('login-message', {success: 1, message: "Welcome back " + user});
+						socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
 						
 						var newPlayerShort = new PlayerShort(idNum, user);
 						playersShort.push(newPlayerShort);
