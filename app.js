@@ -170,13 +170,13 @@ io.on('connection', function(socket) {
 							console.log(err);
 						} else {
 							if(result == null){
-								socket.emit('login-message', {err: 2, message: "Username and/or password invalid. 1"});
+								socket.emit('login-message', {err: 2, message: "Username and/or password invalid."});
 							} else {
 								pass = md5(pass);
 								var salt = result.salt;
 								pass = md5(pass + salt);
 								if(pass != result.pass){
-									socket.emit('login-message', {err: 1, message: "Username and/or password invalid. 2"});
+									socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
 								} else {
 									players[idNum].user = result._id;
 									user = result._id;
@@ -195,7 +195,7 @@ io.on('connection', function(socket) {
 					var salt = result.salt;
 					pass = md5(pass + salt);
 					if(pass != result.pass){
-						socket.emit('login-message', {err: 1, message: "Username and/or password invalid. 2"});
+						socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
 					} else {
 						players[idNum].user = user;
 						socket.emit('login-message', {success: 1, message: "Welcome back " + user});
