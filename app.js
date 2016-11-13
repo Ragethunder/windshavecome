@@ -15,13 +15,15 @@ function Player(id, socket) {
 	this.user = '';
 	this.id = id;
 }
-function PlayerShort(id, name) {
+function PlayerShort(id, name, x, y, z) {
 	this.user = name;
 	this.id = id;
-	this.x = 0;
-	this.y = 0;
-	this.z = 0;
-	this.entity = null;
+	this.x = x;
+	this.y = y;
+	this.z = z;
+}
+function PlayerShortFromIdAndName(id, name) {
+	return new PlayerShort(id, name, 0, 0, 0);
 }
 
 app.get('/', function(req, res){
@@ -30,6 +32,8 @@ app.get('/', function(req, res){
 
 var players = [];
 var playersShort = [];
+
+var playerPositions = [];
 
 var messagesGeneral = [];
 var messagesDevChat = [];
@@ -63,6 +67,11 @@ io.on('connection', function(socket) {
 		socket.emit('chatMessages', {messages:messagesDevChat});
 	});
 	
+	socket.on ('playerPosition', function(data) {
+		if(data) {
+			playerPositions[data.idNum] = new PlayerShort(data.id, data.name, data.x, data.y, data.z);
+		}
+	});
 	
 	socket.on ('chatMessage', function(data) {
 		if(data.channel){
@@ -147,7 +156,7 @@ io.on('connection', function(socket) {
 						players[idNum].user = data._id;
 						socket.emit('register-message', {success: 1, message: "Welcome " + data._id, user: data._id});
 						
-						var newPlayerShort = new PlayerShort(idNum, data._id);
+						var newPlayerShort = new PlayerShortFromIdAndName(idNum, data._id);
 						playersShort.push(newPlayerShort);
 						socket.emit('playerData', {id: idNum, players: playersShort});
 						socket.broadcast.emit('playerConnected', newPlayerShort);
@@ -182,7 +191,7 @@ io.on('connection', function(socket) {
 									user = result._id;
 									socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
 						
-									var newPlayerShort = new PlayerShort(idNum, user);
+									var newPlayerShort = new PlayerShortFromIdAndName(idNum, user);
 									playersShort.push(newPlayerShort);
 									socket.emit('playerData', {id: idNum, players: playersShort});
 									socket.broadcast.emit('playerConnected', newPlayerShort);
@@ -200,7 +209,7 @@ io.on('connection', function(socket) {
 						players[idNum].user = user;
 						socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
 						
-						var newPlayerShort = new PlayerShort(idNum, user);
+						var newPlayerShort = new PlayerShortFromIdAndName(idNum, user);
 						playersShort.push(newPlayerShort);
 						socket.emit('playerData', {id: idNum, players: user});
 						socket.broadcast.emit('playerConnected', newPlayerShort);
@@ -214,6 +223,14 @@ io.on('connection', function(socket) {
 		players[idNum] = null;
 	});
 });
+
+var Update = setInterval(function(){
+	var data = {
+		players: playerPositions;
+	};
+	io.sockets.emit('update', data)
+	playerPositions = [];
+}, 100);
 
 http.listen(port, function () {
   console.log('NodeJS started, listening on port: ' + port + '...');
