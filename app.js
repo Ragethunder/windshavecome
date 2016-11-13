@@ -226,7 +226,7 @@ io.on('connection', function(socket) {
 
 var Update = setInterval(function(){
 	var data = {
-		players: playerPositions;
+		players: playerPositions
 	};
 	io.sockets.emit('update', data)
 	playerPositions = [];
