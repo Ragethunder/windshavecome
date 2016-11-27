@@ -15,12 +15,13 @@ function Player(id, socket) {
 	this.user = '';
 	this.id = id;
 }
-function PlayerShort(id, name, x, y, z) {
+function PlayerShort(id, name, x, y, z, angle) {
 	this.user = name;
 	this.id = id;
 	this.x = x;
 	this.y = y;
 	this.z = z;
+	this.angle = angle;
 }
 function PlayerShortFromIdAndName(id, name) {
 	return new PlayerShort(id, name, 0, 0, 0);
@@ -47,6 +48,7 @@ MongoClient.connect('mongodb://localhost:27017/serverdatabase', function(err, co
 	}
 	db = connecteddb;
 	MongoUsersCollection = db.collection("users");
+	MongoCharsCollection = db.collection("chars");
 	MongoChatCollection = db.collection("chats");
 });
 
@@ -97,7 +99,7 @@ io.on('connection', function(socket) {
 							devChatData = {_id:"devchat", rows:messagesDevChatStoreList};
 							MongoChatCollection.insert(devChatData, function(err, doc){
 								if(err){
-									console.log(err);
+									console.log('Chat Message Error:\n' + err);
 								}
 							});
 						} else {
@@ -141,9 +143,9 @@ io.on('connection', function(socket) {
 			salt: salt,
 			email: email
 		};
-		MongoUsersCollection.find({email:data.email}).toArray(function(err, items){
+		MongoUsersCollection.find({email : data.email}).toArray(function(err, items){
 			if(err){
-				console.log(err);
+				console.log('Register Error:\n' + err);
 			} else if(items.length > 0){
 				socket.emit('register-message', {err: 1, message: "That email is already in use."});
 			} else {
@@ -169,14 +171,14 @@ io.on('connection', function(socket) {
 	socket.on ('login', function(data){
 		var user = data.user;
 		var pass = data.pass;
-		MongoUsersCollection.findOne({_id:user}, function(err, result){
+		MongoUsersCollection.findOne({_id : user}, function(err, result){
 			if(err){
-				console.log(err);
+				console.log('Login Error:\n' + err);
 			} else {
 				if(result == null){
 					MongoUsersCollection.findOne({email:user}, function(err, result){
 						if(err){
-							console.log(err);
+							console.log('Login Error:\n' + err);
 						} else {
 							if(result == null){
 								socket.emit('login-message', {err: 2, message: "Username and/or password invalid."});
@@ -221,6 +223,36 @@ io.on('connection', function(socket) {
 	
 	socket.on('disconnect', function(){
 		players[idNum] = null;
+	});
+	
+	socket.on('listCharacters', function(data){
+		MongoCharsCollection.find({owner : data.user}).toArray(function(err, items) {
+			socket.emit('listCharacters', {chars : items});
+		});
+	});
+	
+	socket.on('createNewChar', function(data){
+		MongoCharsCollection.findOne({_id : data.name}, function(err, result){
+			if(err) {
+				console.log('Creating New Char Error:\n' + err);
+			} else {
+				if(result == null){
+					MongoCharsCollection.insert(data, function(err, doc){
+						if(err){
+							if(err.code == 11000){
+								socket.emit('error-message', {err: 3, message: "Character with that name already exists"});
+							}
+						} else {
+							MongoCharsCollection.find({owner : data.user}).toArray(function(err, items) {
+								socket.emit('listCharacters', {chars : items});
+							});
+						}
+					});
+				} else {
+					socket.emit('error-message', {err: 3, message: "Character with that name already exists"});
+				}
+			}
+		});
 	});
 });
 
