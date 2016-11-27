@@ -232,6 +232,7 @@ io.on('connection', function(socket) {
 	});
 	
 	socket.on('createNewChar', function(data){
+		data._id = data.name;
 		MongoCharsCollection.findOne({_id : data.name}, function(err, result){
 			if(err) {
 				console.log('Creating New Char Error:\n' + err);
