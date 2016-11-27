@@ -244,7 +244,7 @@ io.on('connection', function(socket) {
 							}
 						} else {
 							MongoCharsCollection.find({owner : data.user}).toArray(function(err, items) {
-								socket.emit('listCharacters', {chars : items});
+								socket.emit('listCharactersWithNewOne', {chars : items});
 							});
 						}
 					});
