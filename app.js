@@ -64,7 +64,8 @@ io.on('connection', function(socket) {
 		for(var i=0; i<players.length+1; i++){
 			console.log(players[i]);
 			if(players[i] == undefined || players[i] == null){
-				idNum = i; 
+				idNum = i;
+				break;
 			}
 		}
 		var newPlayer = new Player(idNum, socket);
