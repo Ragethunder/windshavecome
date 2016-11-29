@@ -68,6 +68,7 @@ io.on('connection', function(socket) {
 				break;
 			}
 		}
+		console.log(idNum);
 		var newPlayer = new Player(idNum, socket);
 		players.push(newPlayer);
 		var newPlayerShort = PlayerShortFromId(idNum);
