@@ -16,18 +16,19 @@ function Player(id, socket) {
 	this.user = '';
 	this.id = id;
 }
-function PlayerShort(id, name, pos, vel, angle) {
+function PlayerShort(id, name, pos, vel, angle, charData) {
 	this.id = id;
 	this.name = name;
 	this.pos = pos;
 	this.vel = vel;
 	this.angle = angle;
+	this.charData = {};
 }
 function PlayerShortFromIdAndName(id, name) {
-	return new PlayerShort(id, name, {x:0, y: 0, z:0}, {x:0, y: 0, z:0}, 0);
+	return new PlayerShort(id, name, {x:0, y: 0, z:0}, {x:0, y: 0, z:0}, 0, {name: name});
 }
 function PlayerShortFromId(id) {
-	return new PlayerShort(id, '', {x:0, y: 0, z:0}, {x:0, y: 0, z:0}, 0);
+	return new PlayerShort(id, '', {x:0, y: 0, z:0}, {x:0, y: 0, z:0}, 0, {});
 }
 
 app.get('/', function(req, res){
@@ -168,7 +169,8 @@ io.on('connection', function(socket) {
 		playersShort[idNum].name = charData.name;
 		playersShort[idNum].pos = charData.pos;
 		playersShort[idNum].angle = charData.angle;
-		socket.broadcast.emit('initializeNetworkChar', {shortDescription: playersShort[idNum], charData: charData});
+		playersShort[idNum].charData = charData;
+		socket.broadcast.emit('initializeNetworkChar', {shortDescription: playersShort[idNum]});
 	});
 	
 	socket.on('createNewChar', function(data){
