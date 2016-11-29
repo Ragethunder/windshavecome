@@ -62,7 +62,7 @@ io.on('connection', function(socket) {
 	
 	socket.on ('initialize', function() {
 		for(var i=0; i<players.length+1; i++){
-			if(players[i] === undefined || players[i] === null){
+			if(!(players[i])){
 				idNum = i; 
 			}
 		}
