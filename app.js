@@ -138,6 +138,8 @@ io.on('connection', function(socket) {
 								if(pass != result.pass){
 									socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
 								} else {
+									console.log(idNum);
+									console.log(players);
 									players[idNum].user = result._id;
 									user = result._id;
 									socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
