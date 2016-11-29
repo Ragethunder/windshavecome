@@ -58,7 +58,7 @@ MongoClient.connect('mongodb://localhost:27017/serverdatabase', function(err, co
 
 io.on('connection', function(socket) {
 	
-	var idNum = -1;
+	var idNum = players.length+1;
 	
 	socket.on ('initialize', function() {
 		for(var i=0; i<players.length+1; i++){
