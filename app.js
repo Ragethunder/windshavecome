@@ -6,6 +6,7 @@ var crypto = require('crypto');
 var md5 = require('md5');
 var MongoClient = require('mongodb').MongoClient;
 var MongoUsersCollection;
+var MongoCharsCollection;
 var MongoChatCollection;
 
 var md5sum = crypto.createHash('md5');
@@ -15,16 +16,18 @@ function Player(id, socket) {
 	this.user = '';
 	this.id = id;
 }
-function PlayerShort(id, name, x, y, z, angle) {
-	this.user = name;
+function PlayerShort(id, name, pos, vel, angle) {
 	this.id = id;
-	this.x = x;
-	this.y = y;
-	this.z = z;
+	this.name = name;
+	this.pos = pos;
+	this.vel = vel;
 	this.angle = angle;
 }
 function PlayerShortFromIdAndName(id, name) {
-	return new PlayerShort(id, name, 0, 0, 0);
+	return new PlayerShort(id, name, {x:0, y: 0, z:0}, {x:0, y: 0, z:0}, 0);
+}
+function PlayerShortFromId(id) {
+	return new PlayerShort(id, '', {x:0, y: 0, z:0}, {x:0, y: 0, z:0}, 0);
 }
 
 app.get('/', function(req, res){
@@ -64,15 +67,136 @@ io.on('connection', function(socket) {
 		}
 		var newPlayer = new Player(idNum, socket);
 		players.push(newPlayer);
+		var newPlayerShort = PlayerShortFromId(idNum);
+		playersShort.push(newPlayerShort);
 		
 		socket.emit('chatMessages', {messages:messagesGeneral});
 		socket.emit('chatMessages', {messages:messagesDevChat});
 	});
 	
-	socket.on ('playerPosition', function(data) {
-		if(data) {
-			playerPositions[data.idNum] = new PlayerShort(data.id, data.name, data.x, data.y, data.z);
-		}
+	socket.on('disconnect', function(){
+		players[idNum] = null;
+		playersShort[idNum] = null;
+	});
+	
+	socket.on ('register', function(data){
+		var email = data.email;
+		var user = data.user;
+		var pass = data.pass;
+		pass = md5(pass);
+		var salt = crypto.randomBytes(32).toString('base64');
+		pass = md5(pass + salt);
+		var data = {
+			_id: user,
+			pass: pass,
+			salt: salt,
+			email: email
+		};
+		MongoUsersCollection.find({email : data.email}).toArray(function(err, items){
+			if(err){
+				console.log('Register Error:\n' + err);
+			} else if(items.length > 0){
+				socket.emit('register-message', {err: 1, message: "That email is already in use."});
+			} else {
+				MongoUsersCollection.insert(data, function(err, doc){
+					if(err){
+						if(err.code == 11000){
+							socket.emit('register-message', {err: 2, message: "That username is already in use."});
+						}
+					} else {
+						players[idNum].user = data._id;
+						socket.emit('register-message', {success: 1, message: "Welcome " + data._id, user: data._id});
+						socket.emit('playerData', {id: idNum, players: playersShort});
+						socket.broadcast.emit('playerConnected', newPlayerShort);
+					}
+				});
+			}
+		});
+	});
+	
+	socket.on ('login', function(data){
+		var user = data.user;
+		var pass = data.pass;
+		MongoUsersCollection.findOne({_id : user}, function(err, result){
+			if(err){
+				console.log('Login Error:\n' + err);
+			} else {
+				if(result == null){
+					MongoUsersCollection.findOne({email:user}, function(err, result){
+						if(err){
+							console.log('Login Error:\n' + err);
+						} else {
+							if(result == null){
+								socket.emit('login-message', {err: 2, message: "Username and/or password invalid."});
+							} else {
+								pass = md5(pass);
+								var salt = result.salt;
+								pass = md5(pass + salt);
+								if(pass != result.pass){
+									socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
+								} else {
+									players[idNum].user = result._id;
+									user = result._id;
+									socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
+									socket.emit('playerData', {id: idNum, players: playersShort});
+									socket.broadcast.emit('playerConnected', newPlayerShort);
+								}
+							}
+						}
+					});
+				} else {
+					pass = md5(pass);
+					var salt = result.salt;
+					pass = md5(pass + salt);
+					if(pass != result.pass){
+						socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
+					} else {
+						players[idNum].user = user;
+						socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
+						socket.emit('playerData', {id: idNum, players: playersShort});
+						socket.broadcast.emit('playerConnected', newPlayerShort);
+					}
+				}
+			}
+		});
+	});
+	
+	socket.on('listCharacters', function(data){
+		MongoCharsCollection.find({owner : data.user}).toArray(function(err, items) {
+			socket.emit('listCharacters', {chars : items});
+		});
+	});
+	
+	socket.on('initializeChar', function(charData){
+		playersShort[idNum].name = charData.name;
+		playersShort[idNum].pos = charData.pos;
+		playersShort[idNum].angle = charData.angle;
+		socket.broadcast.emit('initializeNetworkChar', {shortDescription: playersShort[idNum], charData: charData});
+	});
+	
+	socket.on('createNewChar', function(data){
+		data._id = data.name;
+		MongoCharsCollection.findOne({_id : data.name}, function(err, result){
+			if(err) {
+				console.log('Creating New Char Error:\n' + err);
+			} else {
+				if(result == null){
+					MongoCharsCollection.insert(data, function(err, doc){
+						if(err){
+							if(err.code == 11000){
+								socket.emit('error-message', {err: 3, message: "Character with that name already exists"});
+							}
+						} else {
+							MongoCharsCollection.find({owner : data.user}).toArray(function(err, items) {
+								socket.emit('listCharactersWithNewOne', {chars : items});
+							});
+						}
+					});
+				} else {
+					socket.emit('error-message', {err: 3, message: "Character with that name already exists"});
+				}
+			}
+		});
 	});
 	
 	socket.on ('chatMessage', function(data) {
@@ -130,140 +254,27 @@ io.on('connection', function(socket) {
 		}
 	});
 	
-	socket.on ('register', function(data){
-		var email = data.email;
-		var user = data.user;
-		var pass = data.pass;
-		pass = md5(pass);
-		var salt = crypto.randomBytes(32).toString('base64');
-		pass = md5(pass + salt);
-		var data = {
-			_id: user,
-			pass: pass,
-			salt: salt,
-			email: email
-		};
-		MongoUsersCollection.find({email : data.email}).toArray(function(err, items){
-			if(err){
-				console.log('Register Error:\n' + err);
-			} else if(items.length > 0){
-				socket.emit('register-message', {err: 1, message: "That email is already in use."});
+	socket.on ('playerPosition', function(data) {
+		if(data) {
+			if(playerPositions[idNum]){
+				playerPositions[idNum].pos = data.pos;
+				playerPositions[idNum].vel = data.vel;
+				playerPositions[idNum].angle = data.angle;
 			} else {
-				MongoUsersCollection.insert(data, function(err, doc){
-					if(err){
-						if(err.code == 11000){
-							socket.emit('register-message', {err: 2, message: "That username is already in use."});
-						}
-					} else {
-						players[idNum].user = data._id;
-						socket.emit('register-message', {success: 1, message: "Welcome " + data._id, user: data._id});
-						
-						var newPlayerShort = new PlayerShortFromIdAndName(idNum, data._id);
-						playersShort.push(newPlayerShort);
-						socket.emit('playerData', {id: idNum, players: playersShort});
-						socket.broadcast.emit('playerConnected', newPlayerShort);
-					}
-				});
+				playerPositions[idNum] = new PlayerShort(idNum, '', data.pos, data.vel, data.angle);
 			}
-		});
-	});
-	
-	socket.on ('login', function(data){
-		var user = data.user;
-		var pass = data.pass;
-		MongoUsersCollection.findOne({_id : user}, function(err, result){
-			if(err){
-				console.log('Login Error:\n' + err);
-			} else {
-				if(result == null){
-					MongoUsersCollection.findOne({email:user}, function(err, result){
-						if(err){
-							console.log('Login Error:\n' + err);
-						} else {
-							if(result == null){
-								socket.emit('login-message', {err: 2, message: "Username and/or password invalid."});
-							} else {
-								pass = md5(pass);
-								var salt = result.salt;
-								pass = md5(pass + salt);
-								if(pass != result.pass){
-									socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
-								} else {
-									players[idNum].user = result._id;
-									user = result._id;
-									socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
-						
-									var newPlayerShort = new PlayerShortFromIdAndName(idNum, user);
-									playersShort.push(newPlayerShort);
-									socket.emit('playerData', {id: idNum, players: playersShort});
-									socket.broadcast.emit('playerConnected', newPlayerShort);
-								}
-							}
-						}
-					});
-				} else {
-					pass = md5(pass);
-					var salt = result.salt;
-					pass = md5(pass + salt);
-					if(pass != result.pass){
-						socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
-					} else {
-						players[idNum].user = user;
-						socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
-						
-						var newPlayerShort = new PlayerShortFromIdAndName(idNum, user);
-						playersShort.push(newPlayerShort);
-						socket.emit('playerData', {id: idNum, players: user});
-						socket.broadcast.emit('playerConnected', newPlayerShort);
-					}
-				}
-			}
-		});
-	});
-	
-	socket.on('disconnect', function(){
-		players[idNum] = null;
-	});
-	
-	socket.on('listCharacters', function(data){
-		MongoCharsCollection.find({owner : data.user}).toArray(function(err, items) {
-			socket.emit('listCharacters', {chars : items});
-		});
-	});
-	
-	socket.on('createNewChar', function(data){
-		data._id = data.name;
-		MongoCharsCollection.findOne({_id : data.name}, function(err, result){
-			if(err) {
-				console.log('Creating New Char Error:\n' + err);
-			} else {
-				if(result == null){
-					MongoCharsCollection.insert(data, function(err, doc){
-						if(err){
-							if(err.code == 11000){
-								socket.emit('error-message', {err: 3, message: "Character with that name already exists"});
-							}
-						} else {
-							MongoCharsCollection.find({owner : data.user}).toArray(function(err, items) {
-								socket.emit('listCharactersWithNewOne', {chars : items});
-							});
-						}
-					});
-				} else {
-					socket.emit('error-message', {err: 3, message: "Character with that name already exists"});
-				}
-			}
-		});
+		}
+		socket.broadcast.emit('playerUpdate', data);
 	});
 });
 
-var Update = setInterval(function(){
-	var data = {
-		players: playerPositions
-	};
-	io.sockets.emit('update', data)
-	playerPositions = [];
-}, 100);
+//var Update = setInterval(function(){
+	// var data = {
+		// players: playerPositions
+	// };
+	// io.sockets.emit('update', data)
+	// playerPositions = [];
+// }, 100);
 
 http.listen(port, function () {
   console.log('NodeJS started, listening on port: ' + port + '...');
