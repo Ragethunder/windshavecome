@@ -170,7 +170,7 @@ io.on('connection', function(socket) {
 		playersShort[idNum].pos = charData.pos;
 		playersShort[idNum].angle = charData.angle;
 		playersShort[idNum].charData = charData;
-		socket.broadcast.emit('initializeNetworkChar', {shortDescription: playersShort[idNum]});
+		socket.broadcast.emit('initializeNetworkChar', playersShort[idNum]);
 	});
 	
 	socket.on('createNewChar', function(data){
