@@ -67,11 +67,10 @@ io.on('connection', function(socket) {
 				break;
 			}
 		}
-		console.log(idNum);
 		var newPlayer = new Player(idNum, socket);
-		players.push(newPlayer);
+		players[idNum] = newPlayer;
 		var newPlayerShort = PlayerShortFromId(idNum);
-		playersShort.push(newPlayerShort);
+		playersShort[idNum] = newPlayerShort;
 		
 		socket.emit('chatMessages', {messages:messagesGeneral});
 		socket.emit('chatMessages', {messages:messagesDevChat});
@@ -138,8 +137,8 @@ io.on('connection', function(socket) {
 								if(pass != result.pass){
 									socket.emit('login-message', {err: 1, message: "Username and/or password invalid."});
 								} else {
-									console.log(idNum);
-									console.log(players);
+									//console.log(idNum);
+									//console.log(players);
 									players[idNum].user = result._id;
 									user = result._id;
 									socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
