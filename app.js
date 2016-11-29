@@ -62,7 +62,8 @@ io.on('connection', function(socket) {
 	
 	socket.on ('initialize', function() {
 		for(var i=0; i<players.length+1; i++){
-			if(!(players[i])){
+			console.log(players[i]);
+			if(players[i] == undefined || players[i] == null){
 				idNum = i; 
 			}
 		}
@@ -76,7 +77,6 @@ io.on('connection', function(socket) {
 	});
 	
 	socket.on('disconnect', function(){
-		console.log(players);
 		players[idNum] = null;
 		playersShort[idNum] = null;
 		socket.broadcast.emit('playerDisconnected', {id: idNum});
