@@ -79,7 +79,6 @@ io.on('connection', function(socket) {
 		players[idNum] = null;
 		playersShort[idNum] = null;
 		socket.broadcast.emit('playerDisconnected', {id: idNum});
-		console.log(playersShort);
 	});
 	
 	socket.on ('register', function(data){
@@ -173,6 +172,7 @@ io.on('connection', function(socket) {
 		playersShort[idNum].angle = charData.angle;
 		playersShort[idNum].charData = charData;
 		socket.broadcast.emit('initializeNetworkChar', playersShort[idNum]);
+		socket.emit('initializeOtherChars', {charData : playersShort});
 	});
 	
 	socket.on('createNewChar', function(data){
