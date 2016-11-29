@@ -78,6 +78,8 @@ io.on('connection', function(socket) {
 	socket.on('disconnect', function(){
 		players[idNum] = null;
 		playersShort[idNum] = null;
+		socket.broadcast.emit('playerDisconnected', {id: idNum});
+		console.log(playersShort);
 	});
 	
 	socket.on ('register', function(data){
