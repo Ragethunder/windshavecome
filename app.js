@@ -107,7 +107,6 @@ io.on('connection', function(socket) {
 						players[idNum].user = data._id;
 						socket.emit('register-message', {success: 1, message: "Welcome " + data._id, user: data._id});
 						socket.emit('playerData', {id: idNum, players: playersShort});
-						socket.broadcast.emit('playerConnected', newPlayerShort);
 					}
 				});
 			}
@@ -139,7 +138,6 @@ io.on('connection', function(socket) {
 									user = result._id;
 									socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
 									socket.emit('playerData', {id: idNum, players: playersShort});
-									socket.broadcast.emit('playerConnected', newPlayerShort);
 								}
 							}
 						}
@@ -154,7 +152,6 @@ io.on('connection', function(socket) {
 						players[idNum].user = user;
 						socket.emit('login-message', {success: 1, message: "Welcome back " + user, user: user});
 						socket.emit('playerData', {id: idNum, players: playersShort});
-						socket.broadcast.emit('playerConnected', newPlayerShort);
 					}
 				}
 			}
