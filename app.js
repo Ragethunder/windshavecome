@@ -76,6 +76,7 @@ io.on('connection', function(socket) {
 	});
 	
 	socket.on('disconnect', function(){
+		console.log(players);
 		players[idNum] = null;
 		playersShort[idNum] = null;
 		socket.broadcast.emit('playerDisconnected', {id: idNum});
